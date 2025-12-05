@@ -1,3 +1,63 @@
->install.packages("NHANES")
->library(NHANES)
->View(NHANES)
+install.packages("NHANES")
+library(tidyverse)
+library(NHANES)
+
+data(NHANES)
+
+# Select relevant variables:
+# RIAGENDR = Gender (1 = Male, 2 = Female)
+# DUQ200   = Ever used marijuana (1 = Yes, 2 = No)
+df <- NHANES %>%
+  select(RIAGENDR, DUQ200) %>%
+  filter(!is.na(RIAGENDR), !is.na(DUQ200))
+
+# Recode variables for clarity
+df <- df %>%
+  mutate(
+    Gender = ifelse(RIAGENDR == 1, "Male", "Female"),
+    Used_Marijuana = ifelse(DUQ200 == 1, "Yes", "No")
+  )
+
+# ---------------------------------------------------------
+# Exploratory Data Analysis
+# ---------------------------------------------------------
+
+# Frequency table
+table(df$Gender, df$Used_Marijuana)
+
+# Bar plot
+ggplot(df, aes(x = Gender, fill = Used_Marijuana)) +
+  geom_bar(position = "fill") +
+  labs(
+    title = "Proportion of Marijuana Use by Gender",
+    y = "Proportion",
+    x = "Gender"
+  ) +
+  scale_fill_brewer(palette = "Set1")
+
+# ---------------------------------------------------------
+# Two-Proportion Z-Test
+# ---------------------------------------------------------
+
+# Create counts needed for the z-test
+counts <- table(df$Gender, df$Used_Marijuana)
+
+# Number of "Yes" responses by group
+male_yes <- counts["Male", "Yes"]
+female_yes <- counts["Female", "Yes"]
+
+# Total in each group
+male_total <- sum(counts["Male", ])
+female_total <- sum(counts["Female", ])
+
+# Perform two-proportion test
+prop.test(
+  x = c(male_yes, female_yes),
+  n = c(male_total, female_total),
+  alternative = "two.sided",
+  correct = FALSE
+)
+
+# ---------------------------------------------------------
+# End of Script
+# ---------------------------------------------------------
