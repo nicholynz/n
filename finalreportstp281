@@ -1,0 +1,3 @@
+>install.packages("NHANES")
+>library(NHANES)
+>View(NHANES)
